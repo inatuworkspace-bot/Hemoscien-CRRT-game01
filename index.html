@@ -21,6 +21,7 @@
       --neon-cyan: #00E5FF;
       --success-green: #00E676;
       --warning-amber: #FFD600;
+      --line-green: #06C755;
     }
 
     * {
@@ -243,6 +244,32 @@
       color: #FFFFFF;
       border-color: #FFFFFF;
       background: rgba(191, 192, 192, 0.1);
+    }
+
+    /* LINE 官方標準綠按鈕 */
+    .btn-line-official {
+      background-color: var(--line-green);
+      color: #FFFFFF;
+      border: none;
+      padding: 14px 32px;
+      font-size: 15.5px;
+      font-weight: 800;
+      border-radius: 8px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-decoration: none;
+      box-shadow: 0 4px 16px rgba(6, 199, 85, 0.35);
+    }
+    .btn-line-official:hover {
+      background-color: #05b34c;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(6, 199, 85, 0.55);
+      color: #FFFFFF;
     }
 
     /* STEP 1: 病人報到 */
@@ -765,8 +792,12 @@
 
       <div class="result-actions">
         <button class="btn-primary" id="btnRestart">🔄 再玩一次！</button>
-        <a class="btn-secondary" href="https://lihi1.me/y1VR7" target="_blank" rel="noopener noreferrer">
-          💬 加入英禾美小百科官方LINE@
+        <!-- 使用 LINE 官方標準綠 (#06C755) 按鈕 -->
+        <a class="btn-line-official" href="https://lihi1.me/y1VR7" target="_blank" rel="noopener noreferrer">
+          <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.03 2 11c0 2.87 1.5 5.43 3.84 7.08.17.12.28.32.27.53l-.24 1.48c-.08.48.38.86.82.68l2.06-.85c.16-.07.35-.06.5.02.87.26 1.8.4 2.75.4 5.52 0 10-4.03 10-9s-4.48-9-10-9zm-4.7 11.5c-.41 0-.75-.34-.75-.75v-4.5c0-.41.34-.75.75-.75s.75.34.75.75v4.5c0 .41-.34.75-.75.75zm3.45 0c-.41 0-.75-.34-.75-.75v-4.5c0-.41.34-.75.75-.75s.75.34.75.75v3.75h1.5c.41 0 .75.34.75.75s-.34.75-.75.75h-2.25zm4.7 0c-.41 0-.75-.34-.75-.75v-4.5c0-.41.34-.75.75-.75s.75.34.75.75v4.5c0 .41-.34.75-.75.75zm4.7 0c-.41 0-.75-.34-.75-.75v-3.75l-1.8 3.96c-.16.36-.58.54-.95.38-.2-.09-.34-.27-.38-.48l-.02-.11v-4.5c0-.41.34-.75.75-.75s.75.34.75.75v3.75l1.8-3.96c.16-.36.58-.54.95-.38.2.09.34.27.38.48l.02.11v4.5c0 .41-.34.75-.75.75z"/>
+          </svg>
+          <span>加入英禾美小百科官方LINE@</span>
         </a>
       </div>
     </div>
@@ -783,7 +814,7 @@
   </footer>
 
   <script>
-    /* Web Audio API 醫療級音效合成系統[cite: 6] */
+    /* Web Audio API 醫療級音效合成系統 */
     class MedicalAudio {
       constructor() {
         this.ctx = null;
@@ -914,7 +945,7 @@
     injectMachineVisual('homeMachineContainer');
     injectMachineVisual('quizMachineFrame');
 
-    /* 題庫與解答全面同步附檔版本[cite: 6] */
+    /* 題庫與解答內容 */
     const RAW_QUESTION_BANK = [
       {
         id: 1,
@@ -967,7 +998,7 @@
         alarm: false,
         prompt: "題目四：前稀釋 vs 後稀釋\n請將按鈕「前稀釋」放置至正確迴路位置：",
         dragLabel: "🟦 Pre-dilution 前稀釋",
-        targetSlotIndex: 1, // slot 1: Blood Pump 與 Filter 之間
+        targetSlotIndex: 1,
         extraExplanation: "HF440 自動前稀釋功能可依據濾器跨膜壓力偵測，自動計算調整前後稀釋比例。",
         feedbackCorrect: "正確！前稀釋（Pre-dilution）於血液進入透析器（Filter）前加入，可降低血液黏滯度、預防凝血。",
         feedbackWrong: "位置不正確。前稀釋位置應在血泵之後、進入濾器（Filter）之前！"
@@ -978,7 +1009,7 @@
         alarm: false,
         prompt: "題目五：前稀釋 vs 後稀釋\n請將按鈕「後稀釋」放置至正確迴路位置：",
         dragLabel: "🟩 Post-dilution 後稀釋",
-        targetSlotIndex: 2, // slot 2: Filter 與 Patient 之間
+        targetSlotIndex: 2,
         extraExplanation: "HF440 自動前稀釋功能可依據濾器跨膜壓力偵測，自動計算調整前後稀釋比例。",
         feedbackCorrect: "正確！後稀釋（Post-dilution）在血液流出濾器後補充，溶質清除效率最佳。",
         feedbackWrong: "位置不正確。後稀釋位置應在濾器（Filter）之後、回血給病人之前！"
@@ -1152,7 +1183,7 @@
 
       if (timerCountdown <= 10) {
         timerBadge.classList.add('urgent');
-        audioFx.beep(440, 0.05, 'square', 0.08); // 倒數警告音[cite: 6]
+        audioFx.beep(440, 0.05, 'square', 0.08);
       } else {
         timerBadge.classList.remove('urgent');
       }
@@ -1171,7 +1202,7 @@
         alarmHeadlineText.classList.add('show');
         quizMachineFrame.classList.add('alarm-flashing');
         dangerOverlay.classList.add('flashing');
-        audioFx.alarm(); // 警報音效[cite: 6]
+        audioFx.alarm();
       } else {
         alarmHeadlineText.classList.remove('show');
         quizMachineFrame.classList.remove('alarm-flashing');
@@ -1277,13 +1308,13 @@
       dragSourceArea.style.visibility = 'hidden';
 
       if (isCorrect) {
-        audioFx.correct(); // 正確和弦音[cite: 6]
+        audioFx.correct();
         updateVitals(+5);
         showFeedback(true, "回答正確！", qData.feedbackCorrect, qData.extraExplanation);
         slotElem.style.borderColor = "var(--success-green)";
         slotElem.style.color = "var(--success-green)";
       } else {
-        audioFx.wrong(); // 錯誤提示音[cite: 6]
+        audioFx.wrong();
         updateVitals(-10);
         showFeedback(false, "回答錯誤！", qData.feedbackWrong, qData.extraExplanation);
         slotElem.style.borderColor = "var(--reborn-red)";
@@ -1310,11 +1341,11 @@
       });
 
       if (isCorrect) {
-        audioFx.correct(); // 正確和弦音[cite: 6]
+        audioFx.correct();
         updateVitals(+5);
         showFeedback(true, "回答正確！", qData.feedbackCorrect);
       } else {
-        audioFx.wrong(); // 錯誤提示音[cite: 6]
+        audioFx.wrong();
         clickedBtn.classList.add('wrong');
         updateVitals(-10);
         showFeedback(false, "回答錯誤！", qData.feedbackWrong);
@@ -1328,7 +1359,7 @@
       hasAnsweredCurrent = true;
 
       const qData = selectedQuizList[currentQIndex];
-      audioFx.wrong(); //[cite: 6]
+      audioFx.wrong();
       updateVitals(-10);
 
       if (qData.type === 'choice') {
@@ -1398,29 +1429,29 @@
         resGradeTitle.textContent = "Excellent";
         resGradeTitle.style.color = "var(--success-green)";
         resRewardNotice.style.display = 'block';
-        audioFx.correct(); //[cite: 6]
+        audioFx.correct();
       } else if (currentVitals >= 60) {
         resSymbol.textContent = "🟡";
         resGradeTitle.textContent = "Good";
         resGradeTitle.style.color = "var(--warning-amber)";
         resRewardNotice.style.display = 'none';
-        audioFx.beep(600, 0.2); //[cite: 6]
+        audioFx.beep(600, 0.2);
       } else {
         resSymbol.textContent = "🔴";
         resGradeTitle.textContent = "Need Review";
         resGradeTitle.style.color = "var(--reborn-red)";
         resRewardNotice.style.display = 'none';
-        audioFx.wrong(); //[cite: 6]
+        audioFx.wrong();
       }
     }
 
     document.getElementById('btnGoStep1').addEventListener('click', () => {
-      audioFx.init(); //[cite: 6]
+      audioFx.init();
       switchScreen(screenStep1);
     });
 
     document.getElementById('btnStartShift').addEventListener('click', () => {
-      audioFx.init(); //[cite: 6]
+      audioFx.init();
       initGameSession();
       switchScreen(screenQuiz);
       renderQuestion(0);
