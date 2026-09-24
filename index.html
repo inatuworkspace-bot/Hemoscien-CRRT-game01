@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>《CRRT急診室：守住這台機器！》- 英禾美生醫</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --reborn-red: #C30D23;
+      --focus-gray: #BFC0C0;
+      --deep-bg: #0D1117;
+      --panel-bg: rgba(22, 27, 34, 0.95);
+      --card-bg: #161B22;
+      --border-color: rgba(191, 192, 192, 0.28);
+      --text-main: #FFFFFF;
+      --text-sub: #BFC0C0;
+      --glow-red: rgba(195, 13, 35, 0.6);
+      --neon-cyan: #00E5FF;
+      --success-green: #00E676;
+      --warning-amber: #FFD600;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background-color: var(--deep-bg);
+      color: var(--text-main);
+      font-family: 'Noto Sans TC', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 50% 15%, rgba(195, 13, 35, 0.08) 0%, transparent 60%),
+        linear-gradient(rgba(191, 192, 192, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(191, 192, 192, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 32px 32px, 32px 32px;
+    }
+
+    /* 全域緊急閃爍 */
+    .danger-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 99;
+      box-shadow: inset 0 0 0px var(--reborn-red);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .danger-overlay.flashing {
+      animation: alertPulse 1.2s infinite ease-in-out;
+    }
+    @keyframes alertPulse {
+      0%, 100% { box-shadow: inset 0 0 50px rgba(195, 13, 35, 0.2); opacity: 0.3; }
+      50% { box-shadow: inset 0 0 100px rgba(195, 13, 35, 0.7); opacity: 0.9; }
+    }
+
+    /* 固定 HUD 抬頭顯示列 */
+    header.hud-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 72px;
+      background: rgba(13, 17, 23, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      z-index: 100;
+    }
+
+    .brand-mark {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-cube {
+      width: 14px;
+      height: 14px;
+      background: var(--reborn-red);
+      box-shadow: 0 0 12px var(--reborn-red);
+    }
+    .brand-title {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--focus-gray);
+      text-transform: uppercase;
+    }
+
+    /* 右上方：PATIENT VITAL SIGNS */
+    .vitals-monitor {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+    .vitals-label-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Chakra Petch', monospace;
+      font-size: 13px;
+      letter-spacing: 1.5px;
+      font-weight: 700;
+      color: var(--focus-gray);
+    }
+    .vitals-ascii {
+      font-family: 'Chakra Petch', monospace;
+      font-size: 15px;
+      letter-spacing: 2px;
+      font-weight: 700;
+      color: var(--neon-cyan);
+      text-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
+    }
+    .vitals-monitor.critical .vitals-label-row,
+    .vitals-monitor.critical .vitals-ascii {
+      color: var(--reborn-red);
+      text-shadow: 0 0 10px var(--glow-red);
+      animation: textBlink 0.8s infinite;
+    }
+    @keyframes textBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* 容器架構 */
+    main.game-container {
+      width: 100%;
+      max-width: 860px;
+      margin-top: 80px;
+      margin-bottom: 40px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 10;
+    }
+
+    .screen-card {
+      width: 100%;
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 36px 32px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    .screen-card.active {
+      display: flex;
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 標題（單行不折行） */
+    .hero-title {
+      font-size: clamp(20px, 3.8vw, 32px);
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      white-space: nowrap;
+      text-align: center;
+      color: #FFFFFF;
+      margin-bottom: 12px;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    }
+    .hero-subtitle {
+      font-size: 16px;
+      color: var(--focus-gray);
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .hero-tags {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      color: var(--reborn-red);
+      margin-bottom: 24px;
+    }
+
+    /* 按鈕共用樣式 */
+    .btn-primary {
+      background: var(--reborn-red);
+      color: #FFFFFF;
+      border: none;
+      padding: 14px 44px;
+      font-size: 17px;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      letter-spacing: 2px;
+      transition: all 0.2s;
+      box-shadow: 0 4px 18px var(--glow-red);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .btn-primary:hover {
+      background: #E0102B;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(224, 16, 43, 0.8);
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--focus-gray);
+      border: 1px solid var(--focus-gray);
+      padding: 12px 36px;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      letter-spacing: 1.5px;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+    }
+    .btn-secondary:hover {
+      color: #FFFFFF;
+      border-color: #FFFFFF;
+      background: rgba(191, 192, 192, 0.1);
+    }
+
+    /* STEP 1: 病人報到 */
+    .icu-intro-box {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.35);
+      border-left: 4px solid var(--reborn-red);
+      padding: 24px;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 28px;
+    }
+    .intro-badge {
+      display: inline-block;
+      background: rgba(195, 13, 35, 0.15);
+      color: var(--reborn-red);
+      border: 1px solid var(--reborn-red);
+      padding: 4px 10px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 4px;
+      margin-bottom: 14px;
+    }
+    .patient-vitals-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 16px 0;
+    }
+    .vital-stat {
+      background: #1C2128;
+      padding: 12px 16px;
+      border-radius: 6px;
+      border: 1px solid rgba(191, 192, 192, 0.15);
+    }
+    .vital-stat span {
+      display: block;
+      font-size: 12px;
+      color: var(--focus-gray);
+    }
+    .vital-stat strong {
+      font-size: 16px;
+      color: #FFF;
+      font-family: 'Chakra Petch', monospace;
+    }
+
+    /* 答題區域 HUD */
+    .quiz-status-row {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 14px;
+      margin-bottom: 20px;
+    }
+    .q-step {
+      font-family: 'Chakra Petch', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--focus-gray);
+    }
+    .timer-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Chakra Petch', monospace;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--neon-cyan);
+    }
+    .timer-badge.urgent {
+      color: var(--reborn-red);
+      animation: textBlink 0.5s infinite;
+    }
+
+    /* 機器圖片樣式與警報閃爍效果 */
+    .machine-visual-wrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .machine-img-frame {
+      width: 190px;
+      max-width: 60%;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 12px;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(191, 192, 192, 0.2);
+      transition: all 0.3s;
+    }
+    .machine-img-frame img, .machine-img-frame svg {
+      width: 100%;
+      height: auto;
+      max-height: 250px;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.7));
+      transition: filter 0.3s ease;
+    }
+    .machine-img-frame.alarm-flashing {
+      border-color: var(--reborn-red);
+      box-shadow: 0 0 25px var(--glow-red);
+      animation: machineAlarmPulse 0.7s infinite alternate ease-in-out;
+    }
+    .machine-img-frame.alarm-flashing img,
+    .machine-img-frame.alarm-flashing svg {
+      animation: imgAlarmFilter 0.7s infinite alternate;
+    }
+    @keyframes machineAlarmPulse {
+      0% {
+        box-shadow: 0 0 10px rgba(195, 13, 35, 0.4);
+        background: rgba(195, 13, 35, 0.1);
+      }
+      100% {
+        box-shadow: 0 0 35px rgba(195, 13, 35, 0.9);
+        background: rgba(195, 13, 35, 0.25);
+      }
+    }
+    @keyframes imgAlarmFilter {
+      0% { filter: drop-shadow(0 0 8px rgba(195, 13, 35, 0.5)); }
+      100% { filter: drop-shadow(0 0 22px rgba(255, 20, 50, 1)) brightness(1.2); }
+    }
+
+    /* 警報文字告示 */
+    .alarm-headline {
+      display: none;
+      color: var(--reborn-red);
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+      text-shadow: 0 0 14px var(--glow-red);
+      animation: textBlink 0.6s infinite;
+    }
+    .alarm-headline.show {
+      display: block;
+    }
+
+    /* 題目區塊 */
+    .question-prompt {
+      width: 100%;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.6;
+      margin-bottom: 22px;
+      text-align: left;
+      color: #FFFFFF;
+    }
+
+    /* 選擇題選項 */
+    .options-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .option-btn {
+      background: #1C2128;
+      color: #FFFFFF;
+      border: 1px solid rgba(191, 192, 192, 0.25);
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-size: 16px;
+      font-weight: 500;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--reborn-red);
+      background: rgba(195, 13, 35, 0.08);
+      transform: translateX(4px);
+    }
+    .option-btn:disabled {
+      cursor: not-allowed;
+    }
+    .option-btn.correct {
+      border-color: var(--success-green);
+      background: rgba(0, 230, 118, 0.15) !important;
+      color: #A7F3D0;
+    }
+    .option-btn.wrong {
+      border-color: var(--reborn-red);
+      background: rgba(195, 13, 35, 0.2) !important;
+      color: #FECACA;
+    }
+
+    /* 題目四/五：拖曳互動區 */
+    .drag-interactive-wrap {
+      width: 100%;
+      background: #10141A;
+      border: 1px dashed var(--focus-gray);
+      border-radius: 8px;
+      padding: 24px 16px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    .pipeline-flow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+    }
+    .pipe-node {
+      background: #1C2128;
+      border: 1px solid var(--border-color);
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--focus-gray);
+      font-family: 'Chakra Petch', sans-serif;
+    }
+    .pipe-arrow {
+      color: var(--focus-gray);
+      font-weight: 700;
+    }
+    .drop-slot {
+      min-width: 90px;
+      height: 38px;
+      border: 2px dashed #6B7280;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.02);
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .drop-slot.hovered {
+      border-color: var(--neon-cyan);
+      background: rgba(0, 229, 255, 0.1);
+    }
+    .drop-slot.filled {
+      border-style: solid;
+      border-color: #3B82F6;
+    }
+
+    .draggable-source-area {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      min-height: 52px;
+    }
+    .drag-item {
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: grab;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.15s;
+    }
+    .drag-item.pre {
+      background: #1E40AF;
+      color: #DBEAFE;
+      border: 1px solid #60A5FA;
+    }
+    .drag-item.post {
+      background: #065F46;
+      color: #D1FAE5;
+      border: 1px solid #34D399;
+    }
+    .drag-item:active {
+      cursor: grabbing;
+      transform: scale(0.96);
+    }
+
+    /* 答題即時反饋卡 */
+    .answer-feedback-box {
+      width: 100%;
+      border-radius: 8px;
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      display: none;
+      animation: fadeIn 0.3s forwards;
+    }
+    .answer-feedback-box.correct {
+      background: rgba(0, 230, 118, 0.1);
+      border: 1px solid var(--success-green);
+      color: #A7F3D0;
+    }
+    .answer-feedback-box.wrong {
+      background: rgba(195, 13, 35, 0.12);
+      border: 1px solid var(--reborn-red);
+      color: #FECACA;
+    }
+    .feedback-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .feedback-desc {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #F3F4F6;
+    }
+
+    /* 結算頁面 */
+    .result-status-symbol {
+      font-size: 64px;
+      line-height: 1;
+      margin-bottom: 12px;
+      filter: drop-shadow(0 0 16px rgba(255,255,255,0.2));
+    }
+    .result-grade-title {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    .result-vital-score {
+      font-family: 'Chakra Petch', monospace;
+      font-size: 20px;
+      color: var(--focus-gray);
+      margin-bottom: 16px;
+    }
+    .result-reward-notice {
+      background: rgba(0, 230, 118, 0.1);
+      border: 1px solid var(--success-green);
+      color: #A7F3D0;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 28px;
+      text-align: center;
+    }
+    .result-actions {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 380px;
+      gap: 14px;
+    }
+
+    footer.game-footer {
+      margin-top: auto;
+      padding: 16px;
+      font-size: 12px;
+      color: rgba(191, 192, 192, 0.6);
+      letter-spacing: 1px;
+      text-align: center;
+      z-index: 10;
+    }
+
+    @media (max-width: 640px) {
+      header.hud-bar { padding: 0 16px; height: 64px; }
+      .screen-card { padding: 24px 16px; }
+      .question-prompt { font-size: 16px; }
+      .brand-title { font-size: 12px; }
+      .vitals-ascii { font-size: 13px; }
+      .machine-img-frame { width: 150px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 全域警報紅光呼吸覆蓋層 -->
+  <div class="danger-overlay" id="dangerOverlay"></div>
+
+  <!-- 固定抬頭 HUD -->
+  <header class="hud-bar">
+    <div class="brand-mark">
+      <div class="brand-cube"></div>
+      <div class="brand-title">英禾美生醫</div>
+    </div>
+    <div class="vitals-monitor" id="vitalsMonitor">
+      <div class="vitals-label-row">
+        <span>PATIENT VITAL SIGNS</span>
+      </div>
+      <div class="vitals-ascii" id="vitalsAsciiDisplay">████████░░ 80%</div>
+    </div>
+  </header>
+
+  <!-- 主要互動舞台 -->
+  <main class="game-container">
+
+    <!-- 畫面 1: 首頁 -->
+    <div class="screen-card active" id="screenHome">
+      <h1 class="hero-title">《CRRT急診室：守住這台機器！》</h1>
+      <p class="hero-subtitle">5分鐘，你能讓CRRT安全運轉到最後嗎？</p>
+      <div class="hero-tags">判斷 ． 設定 ． 排除 ． 守護</div>
+
+      <div class="machine-visual-wrap">
+        <div class="machine-img-frame" id="homeMachineContainer"></div>
+      </div>
+
+      <button class="btn-primary" id="btnGoStep1">▶ 接受挑戰！</button>
+    </div>
+
+    <!-- 畫面 2: STEP 1 病人報到 -->
+    <div class="screen-card" id="screenStep1">
+      <div class="icu-intro-box">
+        <div class="intro-badge">STEP 1 ｜ 病人報到</div>
+        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 10px;">🚨 ICU病房 08:30</h2>
+        <p style="color: var(--focus-gray); font-size: 15px; line-height: 1.6;">
+          病人目前接受 <strong>CVVH</strong> 治療模式，生命體徵極需精密監控。
+        </p>
+
+        <div class="patient-vitals-grid">
+          <div class="vital-stat">
+            <span>體重 (Weight)</span>
+            <strong>70 kg</strong>
+          </div>
+          <div class="vital-stat">
+            <span>血液流速 (Blood Flow)</span>
+            <strong>180 mL/min</strong>
+          </div>
+          <div class="vital-stat">
+            <span>超濾總量 (Ultrafiltration)</span>
+            <strong>25 mL/kg/hr</strong>
+          </div>
+          <div class="vital-stat">
+            <span>抗凝方式 (Anticoagulation)</span>
+            <strong>Heparin</strong>
+          </div>
+        </div>
+
+        <p style="font-size: 15px; font-weight: 700; color: #FFF; margin-top: 14px;">
+          你的任務：維持治療安全運轉，直到本次值班結束。
+        </p>
+      </div>
+
+      <button class="btn-primary" id="btnStartShift">▶ 開始值班</button>
+    </div>
+
+    <!-- 畫面 3: 答題主畫面 -->
+    <div class="screen-card" id="screenQuiz">
+      <div class="quiz-status-row">
+        <div class="q-step" id="qCurrentCounter">QUESTION 1 / 8</div>
+        <div class="timer-badge" id="timerBadge">
+          <span>⏱</span>
+          <span id="timerText">01:00</span>
+        </div>
+      </div>
+
+      <!-- 機器即時狀態圖片 & 警報狀態 -->
+      <div class="machine-visual-wrap">
+        <div class="alarm-headline" id="alarmHeadlineText">🚨 ALARM!</div>
+        <div class="machine-img-frame" id="quizMachineFrame"></div>
+      </div>
+
+      <!-- 題目內容 -->
+      <div class="question-prompt" id="questionPromptText">題目載入中...</div>
+
+      <!-- 標準選擇題區塊 -->
+      <div class="options-grid" id="optionsContainer"></div>
+
+      <!-- 拖曳專屬互動區塊 (題目四/五) -->
+      <div class="drag-interactive-wrap" id="dragInteractiveContainer" style="display: none;">
+        <div class="pipeline-flow" id="pipelineFlowRow"></div>
+        <div class="draggable-source-area" id="dragSourceArea"></div>
+        <div style="font-size: 13px; color: var(--focus-gray);">（提示：可直接拖曳方塊，或點擊方塊後點選目標插槽放入）</div>
+      </div>
+
+      <!-- 答題反饋卡 -->
+      <div class="answer-feedback-box" id="feedbackBox">
+        <div class="feedback-title" id="feedbackTitle"></div>
+        <div class="feedback-desc" id="feedbackDesc"></div>
+      </div>
+
+      <!-- 下一題按鈕 -->
+      <button class="btn-primary" id="btnNextQuestion" style="display: none;">下一題 ▶</button>
+    </div>
+
+    <!-- 畫面 4: 結算頁面 -->
+    <div class="screen-card" id="screenResult">
+      <div class="result-status-symbol" id="resSymbol">🟢</div>
+      <h2 class="result-grade-title" id="resGradeTitle">Excellent</h2>
+      <div class="result-vital-score" id="resVitalScore">最終生命值：100%</div>
+
+      <div class="result-reward-notice" id="resRewardNotice" style="display: none;">
+        🎁 達成 🟢(綠燈) Excellent！恭喜可獲得精美小禮！
+      </div>
+
+      <div class="result-actions">
+        <button class="btn-primary" id="btnRestart">🔄 再玩一次！</button>
+        <a class="btn-secondary" href="https://lihi1.me/y1VR7" target="_blank" rel="noopener noreferrer">
+          💬 加入英禾美小百科官方LINE@
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- 頁尾版權 -->
+  <footer class="game-footer">
+    英禾美生醫股份有限公司 版權所有
+  </footer>
+
+  <script>
+    /* 
+      1:1 繪製備援 SVG 圖示（當外界圖片載入不到時，無縫自動替換，永遠不破圖）
+    */
+    const FALLBACK_MACHINE_SVG = `
+      <svg viewBox="0 0 340 540" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="max-height:260px;">
+        <!-- 外框機身 -->
+        <rect x="50" y="55" width="240" height="375" rx="42" fill="#F4F5F7" stroke="#1E232B" stroke-width="7"/>
+        <rect x="110" y="32" width="46" height="23" rx="4" fill="#E2E8F0" stroke="#1E232B" stroke-width="5"/>
+        <rect x="220" y="42" width="28" height="13" rx="4" fill="#C30D23" stroke="#1E232B" stroke-width="4"/>
+        
+        <!-- 兩側突起手把卡槽 -->
+        <rect x="30" y="165" width="20" height="24" rx="4" fill="#CBD5E1" stroke="#1E232B" stroke-width="5"/>
+        <rect x="26" y="220" width="24" height="28" rx="4" fill="#CBD5E1" stroke="#1E232B" stroke-width="5"/>
+        <rect x="26" y="335" width="24" height="28" rx="4" fill="#CBD5E1" stroke="#1E232B" stroke-width="5"/>
+        <rect x="288" y="225" width="14" height="130" rx="4" fill="#334155" stroke="#1E232B" stroke-width="5"/>
+
+        <!-- 上方彩色液晶控制螢幕 -->
+        <rect x="100" y="90" width="140" height="98" rx="14" fill="#1E293B" stroke="#1E232B" stroke-width="6"/>
+        <rect x="110" y="100" width="120" height="78" rx="4" fill="#FFFFFF"/>
+        <!-- 螢幕內 UI 圖塊 -->
+        <rect x="115" y="105" width="70" height="42" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.5"/>
+        <rect x="118" y="110" width="18" height="8" rx="2" fill="#3B82F6"/>
+        <rect x="140" y="110" width="18" height="8" rx="2" fill="#3B82F6"/>
+        <rect x="118" y="125" width="18" height="8" rx="2" fill="#3B82F6"/>
+        <rect x="140" y="125" width="18" height="8" rx="2" fill="#3B82F6"/>
+        <rect x="190" y="105" width="36" height="72" fill="#1D4ED8"/>
+        <rect x="193" y="130" width="30" height="12" rx="2" fill="#C30D23"/>
+        <rect x="193" y="145" width="30" height="10" rx="2" fill="#00E5FF"/>
+        <rect x="115" y="152" width="70" height="22" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.5"/>
+        
+        <!-- 下方透析卡匣主工作區 -->
+        <rect x="70" y="200" width="200" height="210" rx="14" fill="#CFE2FE" stroke="#1E232B" stroke-width="6"/>
+        
+        <!-- 管路路徑模擬線條 -->
+        <path d="M 85 240 Q 140 230 205 240 Q 250 250 245 350" fill="none" stroke="#DC2626" stroke-width="5" stroke-linecap="round"/>
+        <path d="M 235 240 L 235 340" fill="none" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
+        <path d="M 125 360 Q 155 310 205 270" fill="none" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/>
+        
+        <!-- 幫浦旋轉輪座 (紅、黃、藍) -->
+        <!-- 左上紅幫浦 -->
+        <circle cx="115" cy="245" r="22" fill="#DC2626" stroke="#1E232B" stroke-width="4"/>
+        <circle cx="115" cy="245" r="12" fill="#991B1B"/>
+        <!-- 右上藍幫浦 -->
+        <circle cx="178" cy="245" r="22" fill="#2563EB" stroke="#1E232B" stroke-width="4"/>
+        <circle cx="178" cy="245" r="12" fill="#1D4ED8"/>
+        <!-- 左中黃幫浦 -->
+        <circle cx="115" cy="305" r="22" fill="#EAB308" stroke="#1E232B" stroke-width="4"/>
+        <circle cx="115" cy="305" r="12" fill="#CA8A04"/>
+        <!-- 中央藍幫浦 -->
+        <circle cx="178" cy="305" r="22" fill="#2563EB" stroke="#1E232B" stroke-width="4"/>
+        <circle cx="178" cy="305" r="12" fill="#1D4ED8"/>
+        <!-- 下方藍幫浦 -->
+        <circle cx="188" cy="370" r="18" fill="#2563EB" stroke="#1E232B" stroke-width="4"/>
+        
+        <!-- 右側過濾器/集氣小壺 -->
+        <rect x="232" y="235" width="16" height="58" rx="8" fill="#93C5FD" stroke="#1E232B" stroke-width="4"/>
+        
+        <!-- 腳架與底部秤重感應勾 -->
+        <path d="M 135 430 L 170 470 L 205 430 Z" fill="#334155" stroke="#1E232B" stroke-width="5"/>
+        <rect x="156" y="470" width="28" height="60" fill="#1E293B"/>
+        <path d="M 95 440 L 95 500 M 70 500 L 120 500" stroke="#1E232B" stroke-width="5" fill="none"/>
+        <rect x="88" y="465" width="14" height="24" fill="#FBBF24" stroke="#1E232B" stroke-width="3"/>
+        <path d="M 245 440 L 245 500 M 220 500 L 270 500" stroke="#1E232B" stroke-width="5" fill="none"/>
+        <rect x="238" y="465" width="14" height="24" fill="#38BDF8" stroke="#1E232B" stroke-width="3"/>
+      </svg>
+    `;
+
+    /* 圖片載入容錯管理 */
+    function injectMachineVisual(targetElementId) {
+      const container = document.getElementById(targetElementId);
+      if (!container) return;
+
+      const img = new Image();
+      // 支援本地同目錄命名為 crrt-machine.png 或原上傳圖片名
+      img.src = "crrt-machine.png";
+      img.alt = "HF440 CRRT Machine";
+
+      img.onload = () => {
+        container.innerHTML = '';
+        container.appendChild(img);
+      };
+
+      img.onerror = () => {
+        // 若找不到圖檔，自動啟用 100% 擬真備援 SVG
+        container.innerHTML = FALLBACK_MACHINE_SVG;
+      };
+    }
+
+    injectMachineVisual('homeMachineContainer');
+    injectMachineVisual('quizMachineFrame');
+
+    /* 題庫設定 (共 10 題，隨機挑選 8 題) */
+    const RAW_QUESTION_BANK = [
+      {
+        id: 1,
+        type: 'choice',
+        alarm: false,
+        prompt: "題目一：醫師希望透過壓力差移除水分與中分子。\n目前要執行的治療模式最適合選擇？",
+        options: [
+          { key: "A", text: "CVVHD" },
+          { key: "B", text: "CVVH" },
+          { key: "C", text: "SCUF" },
+          { key: "D", text: "Hemoperfusion" }
+        ],
+        answer: "B",
+        explanation: "解答：B. CVVH"
+      },
+      {
+        id: 2,
+        type: 'choice',
+        alarm: false,
+        prompt: "題目二：醫師希望透過濃度差移除電解質及小分子。\n目前要執行的治療模式最適合選擇？",
+        options: [
+          { key: "A", text: "CVVHD" },
+          { key: "B", text: "CVVH" },
+          { key: "C", text: "SCUF" },
+          { key: "D", text: "Hemoperfusion" }
+        ],
+        answer: "A",
+        explanation: "解答：A. CVVHD"
+      },
+      {
+        id: 3,
+        type: 'choice',
+        alarm: false,
+        prompt: "題目三：病人70 kg，醫師處方劑量為25 mL/kg/hr，此患者每小時超濾流量須設定多少mL/hr?",
+        options: [
+          { key: "A", text: "1700mL/hr" },
+          { key: "B", text: "1750mL/hr" },
+          { key: "C", text: "1800mL/hr" },
+          { key: "D", text: "1850mL/hr" }
+        ],
+        answer: "B",
+        explanation: "解答：B. 1750mL/hr"
+      },
+      {
+        id: 4,
+        type: 'drag',
+        alarm: false,
+        prompt: "題目四：前稀釋 vs 後稀釋\n請將旁邊按鈕：前稀釋 拖曳至正確位置。",
+        dragLabel: "🟦 Pre-dilution前稀釋",
+        targetSlotIndex: 1,
+        extraExplanation: "HF440自動前稀釋功能可依據濾器跨膜壓力偵測，自動計算調整前後稀釋比例。"
+      },
+      {
+        id: 5,
+        type: 'drag',
+        alarm: false,
+        prompt: "題目五：前稀釋 vs 後稀釋\n請將旁邊按鈕：後稀釋 拖曳至正確位置。",
+        dragLabel: "🟩 Post-dilution 後稀釋",
+        targetSlotIndex: 2,
+        extraExplanation: "HF440自動前稀釋功能可依據濾器跨膜壓力偵測，自動計算調整前後稀釋比例。"
+      },
+      {
+        id: 6,
+        type: 'choice',
+        alarm: true,
+        prompt: "「動脈負壓低於設定警戒值(引血有阻力)」，你第一個要檢查什麼？",
+        options: [
+          { key: "A", text: "動脈導管(紅端)是否折管" },
+          { key: "B", text: "濾器出入口是否有明顯血塊" },
+          { key: "C", text: "通知醫師更換導管" },
+          { key: "D", text: "結束治療更換迴路管套組" }
+        ],
+        answer: "A",
+        explanation: "解答：A. 動脈導管(紅端)是否折管"
+      },
+      {
+        id: 7,
+        type: 'choice',
+        alarm: true,
+        prompt: "「靜脈負壓高於設定警戒值(回血有阻力)」，你第一個要檢查什麼？",
+        options: [
+          { key: "A", text: "放寬壓力警戒值" },
+          { key: "B", text: "更換補充液" },
+          { key: "C", text: "測試病人回血端導管(藍端)順暢度" },
+          { key: "D", text: "結束治療更換迴路管套組" }
+        ],
+        answer: "C",
+        explanation: "解答：C. 測試病人回血端導管順暢度"
+      },
+      {
+        id: 8,
+        type: 'choice',
+        alarm: true,
+        prompt: "「補充液流量過低(可能折管或夾子未打開)」，你第一個要檢查什麼？",
+        options: [
+          { key: "A", text: "降低血液流速" },
+          { key: "B", text: "確認補充液管路是否折管" },
+          { key: "C", text: "測試病人導管順暢度" },
+          { key: "D", text: "結束治療更換迴路管套組" }
+        ],
+        answer: "B",
+        explanation: "解答：B.確認補充液管路是否折管"
+      },
+      {
+        id: 9,
+        type: 'choice',
+        alarm: true,
+        prompt: "「漏血偵測器發現可能漏血」，你第一個要檢查什麼？",
+        options: [
+          { key: "A", text: "觀察漏血偵測器內顏色是否為淡黃色" },
+          { key: "B", text: "調整血液流速" },
+          { key: "C", text: "將病室內燈光關閉" },
+          { key: "D", text: "結束治療更換迴路管套組" }
+        ],
+        answer: "A",
+        explanation: "解答：A.觀察漏血偵測器內顏色是否為淡黃色"
+      },
+      {
+        id: 10,
+        type: 'choice',
+        alarm: false,
+        prompt: "題目十：以下哪個「並非」回血時機？",
+        options: [
+          { key: "A", text: "TMP：350 mmHg" },
+          { key: "B", text: "靜脈壓力：250 mmHg" },
+          { key: "C", text: "動脈壓力：250 mmHg" },
+          { key: "D", text: "療程時間達72 hr" }
+        ],
+        answer: "C",
+        explanation: "解答：C.動脈壓力：250 mmHg"
+      }
+    ];
+
+    /* 遊戲狀態機 */
+    let currentVitals = 80;
+    let selectedQuizList = [];
+    let currentQIndex = 0;
+    let timerCountdown = 60;
+    let timerInterval = null;
+    let hasAnsweredCurrent = false;
+    let draggedSelection = null;
+
+    /* DOM 節點 */
+    const vitalsMonitor = document.getElementById('vitalsMonitor');
+    const vitalsAsciiDisplay = document.getElementById('vitalsAsciiDisplay');
+    const dangerOverlay = document.getElementById('dangerOverlay');
+
+    const screenHome = document.getElementById('screenHome');
+    const screenStep1 = document.getElementById('screenStep1');
+    const screenQuiz = document.getElementById('screenQuiz');
+    const screenResult = document.getElementById('screenResult');
+
+    const qCurrentCounter = document.getElementById('qCurrentCounter');
+    const timerBadge = document.getElementById('timerBadge');
+    const timerText = document.getElementById('timerText');
+    const alarmHeadlineText = document.getElementById('alarmHeadlineText');
+    const quizMachineFrame = document.getElementById('quizMachineFrame');
+    const questionPromptText = document.getElementById('questionPromptText');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const dragInteractiveContainer = document.getElementById('dragInteractiveContainer');
+    const pipelineFlowRow = document.getElementById('pipelineFlowRow');
+    const dragSourceArea = document.getElementById('dragSourceArea');
+    const feedbackBox = document.getElementById('feedbackBox');
+    const feedbackTitle = document.getElementById('feedbackTitle');
+    const feedbackDesc = document.getElementById('feedbackDesc');
+    const btnNextQuestion = document.getElementById('btnNextQuestion');
+
+    /* 生命值計算與 ASCII 渲染 */
+    function updateVitals(delta) {
+      currentVitals = Math.min(100, Math.max(0, currentVitals + delta));
+      renderVitalsDisplay();
+    }
+
+    function renderVitalsDisplay() {
+      const totalBlocks = 10;
+      const filledBlocks = Math.round((currentVitals / 100) * totalBlocks);
+      const emptyBlocks = totalBlocks - filledBlocks;
+      const barString = '█'.repeat(filledBlocks) + '░'.repeat(emptyBlocks);
+
+      vitalsAsciiDisplay.textContent = `${barString} ${currentVitals}%`;
+
+      if (currentVitals < 60) {
+        vitalsMonitor.classList.add('critical');
+        dangerOverlay.classList.add('flashing');
+      } else {
+        vitalsMonitor.classList.remove('critical');
+        dangerOverlay.classList.remove('flashing');
+      }
+    }
+
+    /* 切換畫面輔助函式 */
+    function switchScreen(targetScreen) {
+      [screenHome, screenStep1, screenQuiz, screenResult].forEach(s => s.classList.remove('active'));
+      targetScreen.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* 洗牌隨機抽取 8 題 */
+    function initGameSession() {
+      currentVitals = 80;
+      currentQIndex = 0;
+      renderVitalsDisplay();
+
+      const shuffled = [...RAW_QUESTION_BANK].sort(() => 0.5 - Math.random());
+      selectedQuizList = shuffled.slice(0, 8);
+    }
+
+    /* 計時器邏輯 (60秒) */
+    function startQuestionTimer() {
+      clearInterval(timerInterval);
+      timerCountdown = 60;
+      updateTimerBadge();
+
+      timerInterval = setInterval(() => {
+        timerCountdown--;
+        updateTimerBadge();
+
+        if (timerCountdown <= 0) {
+          clearInterval(timerInterval);
+          handleTimeout();
+        }
+      }, 1000);
+    }
+
+    function updateTimerBadge() {
+      const mm = String(Math.floor(timerCountdown / 60)).padStart(2, '0');
+      const ss = String(timerCountdown % 60).padStart(2, '0');
+      timerText.textContent = `${mm}:${ss}`;
+
+      if (timerCountdown <= 10) {
+        timerBadge.classList.add('urgent');
+      } else {
+        timerBadge.classList.remove('urgent');
+      }
+    }
+
+    /* 載入指定題目 */
+    function renderQuestion(index) {
+      hasAnsweredCurrent = false;
+      const qData = selectedQuizList[index];
+
+      qCurrentCounter.textContent = `QUESTION ${index + 1} / 8`;
+      feedbackBox.style.display = 'none';
+      feedbackBox.className = 'answer-feedback-box';
+      btnNextQuestion.style.display = 'none';
+
+      // 判斷警報題目 (Q6 ~ Q9)
+      if (qData.alarm) {
+        alarmHeadlineText.classList.add('show');
+        quizMachineFrame.classList.add('alarm-flashing');
+        dangerOverlay.classList.add('flashing');
+      } else {
+        alarmHeadlineText.classList.remove('show');
+        quizMachineFrame.classList.remove('alarm-flashing');
+        if (currentVitals >= 60) {
+          dangerOverlay.classList.remove('flashing');
+        }
+      }
+
+      questionPromptText.textContent = qData.prompt;
+
+      if (qData.type === 'choice') {
+        dragInteractiveContainer.style.display = 'none';
+        optionsContainer.style.display = 'grid';
+        optionsContainer.innerHTML = '';
+
+        qData.options.forEach(opt => {
+          const btn = document.createElement('button');
+          btn.className = 'option-btn';
+          btn.innerHTML = `<strong>${opt.key}.</strong> <span>${opt.text}</span>`;
+          btn.addEventListener('click', () => handleChoiceAnswer(opt.key, btn));
+          optionsContainer.appendChild(btn);
+        });
+      } else if (qData.type === 'drag') {
+        optionsContainer.style.display = 'none';
+        dragInteractiveContainer.style.display = 'flex';
+        renderDragPipeline(qData);
+      }
+
+      startQuestionTimer();
+    }
+
+    /* 渲染拖曳管路題目 */
+    function renderDragPipeline(qData) {
+      pipelineFlowRow.innerHTML = `
+        <div class="pipe-node">Patient</div>
+        <div class="pipe-arrow">➔</div>
+        <div class="pipe-node">Blood Pump</div>
+        <div class="pipe-arrow">➔</div>
+        <div class="drop-slot" data-slot="1">☐</div>
+        <div class="pipe-arrow">➔</div>
+        <div class="pipe-node">Filter</div>
+        <div class="pipe-arrow">➔</div>
+        <div class="drop-slot" data-slot="2">☐</div>
+        <div class="pipe-arrow">➔</div>
+        <div class="pipe-node">Patient</div>
+      `;
+
+      dragSourceArea.innerHTML = `
+        <div class="drag-item ${qData.id === 4 ? 'pre' : 'post'}" draggable="true" id="sourceDragItem">
+          ${qData.dragLabel}
+        </div>
+      `;
+
+      draggedSelection = null;
+      const dragItem = document.getElementById('sourceDragItem');
+      const slots = pipelineFlowRow.querySelectorAll('.drop-slot');
+
+      dragItem.addEventListener('dragstart', (e) => {
+        if (hasAnsweredCurrent) return;
+        e.dataTransfer.setData('text/plain', 'slot_item');
+      });
+
+      dragItem.addEventListener('click', () => {
+        if (hasAnsweredCurrent) return;
+        draggedSelection = true;
+        dragItem.style.outline = '2px solid #00E5FF';
+      });
+
+      slots.forEach(slot => {
+        slot.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          if (!hasAnsweredCurrent) slot.classList.add('hovered');
+        });
+        slot.addEventListener('dragleave', () => slot.classList.remove('hovered'));
+        slot.addEventListener('drop', (e) => {
+          e.preventDefault();
+          slot.classList.remove('hovered');
+          if (hasAnsweredCurrent) return;
+          const targetSlot = parseInt(slot.getAttribute('data-slot'), 10);
+          evaluateDragAnswer(targetSlot, slot);
+        });
+
+        slot.addEventListener('click', () => {
+          if (hasAnsweredCurrent || !draggedSelection) return;
+          const targetSlot = parseInt(slot.getAttribute('data-slot'), 10);
+          evaluateDragAnswer(targetSlot, slot);
+        });
+      });
+    }
+
+    /* 判定拖曳結果 */
+    function evaluateDragAnswer(selectedSlot, slotElem) {
+      hasAnsweredCurrent = true;
+      clearInterval(timerInterval);
+
+      const qData = selectedQuizList[currentQIndex];
+      const isCorrect = (selectedSlot === qData.targetSlotIndex);
+
+      slotElem.textContent = (qData.id === 4 ? "前稀釋" : "後稀釋");
+      slotElem.classList.add('filled');
+      document.getElementById('dragSourceArea').style.visibility = 'hidden';
+
+      if (isCorrect) {
+        updateVitals(+5);
+        showFeedback(true, "回答正確！", qData.extraExplanation);
+        slotElem.style.borderColor = "var(--success-green)";
+        slotElem.style.color = "var(--success-green)";
+      } else {
+        updateVitals(-10);
+        showFeedback(false, "回答錯誤！", `正確解答為：Patient → Blood Pump → ${qData.id === 4 ? '前稀釋 → Filter' : 'Filter → 後稀釋'} → Patient。\n${qData.extraExplanation}`);
+        slotElem.style.borderColor = "var(--reborn-red)";
+        slotElem.style.color = "var(--reborn-red)";
+      }
+
+      checkSessionEndState();
+    }
+
+    /* 判定選擇題結果 */
+    function handleChoiceAnswer(selectedKey, clickedBtn) {
+      if (hasAnsweredCurrent) return;
+      hasAnsweredCurrent = true;
+      clearInterval(timerInterval);
+
+      const qData = selectedQuizList[currentQIndex];
+      const isCorrect = (selectedKey === qData.answer);
+
+      const allBtns = optionsContainer.querySelectorAll('.option-btn');
+      allBtns.forEach(btn => {
+        btn.disabled = true;
+        if (btn.querySelector('strong').textContent.includes(qData.answer)) {
+          btn.classList.add('correct');
+        }
+      });
+
+      if (isCorrect) {
+        updateVitals(+5);
+        showFeedback(true, "回答正確！", qData.explanation);
+      } else {
+        clickedBtn.classList.add('wrong');
+        updateVitals(-10);
+        showFeedback(false, "回答錯誤！", qData.explanation);
+      }
+
+      checkSessionEndState();
+    }
+
+    /* 超時判定 */
+    function handleTimeout() {
+      if (hasAnsweredCurrent) return;
+      hasAnsweredCurrent = true;
+
+      const qData = selectedQuizList[currentQIndex];
+      updateVitals(-10);
+
+      if (qData.type === 'choice') {
+        const allBtns = optionsContainer.querySelectorAll('.option-btn');
+        allBtns.forEach(btn => {
+          btn.disabled = true;
+          if (btn.querySelector('strong').textContent.includes(qData.answer)) {
+            btn.classList.add('correct');
+          }
+        });
+      }
+
+      showFeedback(false, "時間到！未作答扣減生命值", qData.explanation || qData.extraExplanation);
+      checkSessionEndState();
+    }
+
+    /* 顯示解答反饋與推進按鈕 */
+    function showFeedback(isCorrect, title, desc) {
+      feedbackBox.className = `answer-feedback-box ${isCorrect ? 'correct' : 'wrong'}`;
+      feedbackTitle.innerHTML = `${isCorrect ? '✅' : '❌'} ${title}`;
+      feedbackDesc.innerText = desc;
+      feedbackBox.style.display = 'block';
+
+      btnNextQuestion.style.display = 'inline-flex';
+      btnNextQuestion.textContent = (currentQIndex === 7 || currentVitals <= 0) ? "查看值班結算 ▶" : "下一題 ▶";
+    }
+
+    function checkSessionEndState() {
+      if (currentVitals <= 0) {
+        btnNextQuestion.textContent = "病人生命危急！結束值班 ▶";
+      }
+    }
+
+    btnNextQuestion.addEventListener('click', () => {
+      if (currentVitals <= 0 || currentQIndex >= 7) {
+        renderResultScreen();
+      } else {
+        currentQIndex++;
+        renderQuestion(currentQIndex);
+      }
+    });
+
+    /* 結算頁面評定 */
+    function renderResultScreen() {
+      switchScreen(screenResult);
+      clearInterval(timerInterval);
+
+      alarmHeadlineText.classList.remove('show');
+      quizMachineFrame.classList.remove('alarm-flashing');
+      if (currentVitals >= 60) {
+        dangerOverlay.classList.remove('flashing');
+      }
+
+      const resSymbol = document.getElementById('resSymbol');
+      const resGradeTitle = document.getElementById('resGradeTitle');
+      const resVitalScore = document.getElementById('resVitalScore');
+      const resRewardNotice = document.getElementById('resRewardNotice');
+
+      resVitalScore.textContent = `你的CRRT值班結果：生命值 ${currentVitals}%`;
+
+      if (currentVitals >= 80) {
+        resSymbol.textContent = "🟢";
+        resGradeTitle.textContent = "Excellent";
+        resGradeTitle.style.color = "var(--success-green)";
+        resRewardNotice.style.display = 'block';
+      } else if (currentVitals >= 60) {
+        resSymbol.textContent = "🟡";
+        resGradeTitle.textContent = "Good";
+        resGradeTitle.style.color = "var(--warning-amber)";
+        resRewardNotice.style.display = 'none';
+      } else {
+        resSymbol.textContent = "🔴";
+        resGradeTitle.textContent = "Need Review";
+        resGradeTitle.style.color = "var(--reborn-red)";
+        resRewardNotice.style.display = 'none';
+      }
+    }
+
+    /* 流程控制按鈕 */
+    document.getElementById('btnGoStep1').addEventListener('click', () => {
+      switchScreen(screenStep1);
+    });
+
+    document.getElementById('btnStartShift').addEventListener('click', () => {
+      initGameSession();
+      switchScreen(screenQuiz);
+      renderQuestion(0);
+    });
+
+    document.getElementById('btnRestart').addEventListener('click', () => {
+      initGameSession();
+      switchScreen(screenQuiz);
+      renderQuestion(0);
+    });
+
+    // 初始渲染
+    renderVitalsDisplay();
+  </script>
+</body>
+</html>
