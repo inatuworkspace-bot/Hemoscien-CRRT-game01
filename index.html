@@ -367,6 +367,13 @@
       border: 1px solid rgba(191, 192, 192, 0.2);
       transition: all 0.3s;
     }
+    /* 當處於點選熱區模式時微幅擴大便於操作 */
+    .machine-img-frame.interactive-pump-mode {
+      width: 240px;
+      max-width: 82%;
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.25);
+    }
     .machine-img-frame img, .machine-img-frame svg {
       width: 100%;
       height: auto;
@@ -375,6 +382,10 @@
       display: block;
       filter: drop-shadow(0 4px 10px rgba(0,0,0,0.7));
       transition: filter 0.3s ease;
+    }
+    .machine-img-frame.interactive-pump-mode img,
+    .machine-img-frame.interactive-pump-mode svg {
+      max-height: 310px;
     }
     .machine-img-frame.alarm-flashing {
       border-color: var(--reborn-red);
@@ -398,6 +409,71 @@
     @keyframes imgAlarmFilter {
       0% { filter: drop-shadow(0 0 8px rgba(195, 13, 35, 0.5)); }
       100% { filter: drop-shadow(0 0 22px rgba(255, 20, 50, 1)) brightness(1.2); }
+    }
+
+    /* 四個泵浦熱區覆蓋層 */
+    .pump-hotspots-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: auto;
+      display: none;
+    }
+    .pump-hotspots-layer.active {
+      display: block;
+    }
+    .pump-btn-hotspot {
+      position: absolute;
+      width: 25%;
+      height: 16%;
+      border-radius: 50%;
+      border: 2px dashed rgba(191, 192, 192, 0.7);
+      background: rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      animation: hotspotBreathe 2s infinite ease-in-out;
+    }
+    .pump-btn-hotspot:hover {
+      border-color: var(--neon-cyan);
+      border-style: solid;
+      background: rgba(0, 229, 255, 0.25);
+      transform: scale(1.08);
+      box-shadow: 0 0 14px var(--neon-cyan);
+    }
+    @keyframes hotspotBreathe {
+      0%, 100% { opacity: 0.55; transform: scale(0.96); }
+      50% { opacity: 0.95; transform: scale(1.04); }
+    }
+    .pump-btn-hotspot.correct-hit {
+      border-color: var(--success-green) !important;
+      border-style: solid;
+      background: rgba(0, 230, 118, 0.45) !important;
+      box-shadow: 0 0 20px var(--success-green);
+      animation: none;
+    }
+    .pump-btn-hotspot.wrong-hit {
+      border-color: var(--reborn-red) !important;
+      border-style: solid;
+      background: rgba(195, 13, 35, 0.45) !important;
+      box-shadow: 0 0 20px var(--reborn-red);
+      animation: none;
+    }
+    .pump-name-badge {
+      display: none;
+      position: absolute;
+      bottom: -22px;
+      white-space: nowrap;
+      background: rgba(13, 17, 23, 0.92);
+      border: 1px solid var(--border-color);
+      color: #FFF;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      pointer-events: none;
+      z-index: 10;
     }
 
     .alarm-headline {
@@ -667,6 +743,7 @@
       .screen-card { padding: 22px 14px; }
       .question-prompt { font-size: 15.5px; }
       .machine-img-frame { width: 145px; }
+      .machine-img-frame.interactive-pump-mode { width: 220px; }
     }
   </style>
 </head>
@@ -751,10 +828,30 @@
         </div>
       </div>
 
-      <!-- 機台圖片與警報視覺 -->
+      <!-- 機台圖片與熱點點選圖層 -->
       <div class="machine-visual-wrap">
         <div class="alarm-headline" id="alarmHeadlineText">🚨 ALARM!</div>
-        <div class="machine-img-frame" id="quizMachineFrame"></div>
+        <div class="machine-img-frame" id="quizMachineFrame">
+          <!-- 圖片由 JS inject -->
+          <div class="pump-hotspots-layer" id="pumpHotspotsLayer">
+            <!-- 血液泵浦 (左上紅)[cite: 7] -->
+            <div class="pump-btn-hotspot" id="hotspot_blood" style="left: 27%; top: 40%;" data-pump="blood">
+              <span class="pump-name-badge">血液泵浦</span>
+            </div>
+            <!-- 前稀釋泵浦 (右上藍，紅旁邊)[cite: 7] -->
+            <div class="pump-btn-hotspot" id="hotspot_predilution" style="left: 48%; top: 40%;" data-pump="predilution">
+              <span class="pump-name-badge">前稀釋泵浦</span>
+            </div>
+            <!-- 廢液泵浦 (左中黃)[cite: 7] -->
+            <div class="pump-btn-hotspot" id="hotspot_effluent" style="left: 31%; top: 50%;" data-pump="effluent">
+              <span class="pump-name-badge">廢液泵浦</span>
+            </div>
+            <!-- 補充液泵浦 (中下藍，黃旁邊)[cite: 7] -->
+            <div class="pump-btn-hotspot" id="hotspot_replacement" style="left: 49%; top: 51%;" data-pump="replacement">
+              <span class="pump-name-badge">補充液泵浦</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 題目問題 -->
@@ -792,7 +889,6 @@
 
       <div class="result-actions">
         <button class="btn-primary" id="btnRestart">🔄 再玩一次！</button>
-        <!-- 使用 LINE 官方標準綠 (#06C755) 按鈕 -->
         <a class="btn-line-official" href="https://lihi1.me/y1VR7" target="_blank" rel="noopener noreferrer">
           <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24">
             <path d="M12 2C6.48 2 2 6.03 2 11c0 2.87 1.5 5.43 3.84 7.08.17.12.28.32.27.53l-.24 1.48c-.08.48.38.86.82.68l2.06-.85c.16-.07.35-.06.5.02.87.26 1.8.4 2.75.4 5.52 0 10-4.03 10-9s-4.48-9-10-9zm-4.7 11.5c-.41 0-.75-.34-.75-.75v-4.5c0-.41.34-.75.75-.75s.75.34.75.75v4.5c0 .41-.34.75-.75.75zm3.45 0c-.41 0-.75-.34-.75-.75v-4.5c0-.41.34-.75.75-.75s.75.34.75.75v3.75h1.5c.41 0 .75.34.75.75s-.34.75-.75.75h-2.25zm4.7 0c-.41 0-.75-.34-.75-.75v-4.5c0-.41.34-.75.75-.75s.75.34.75.75v4.5c0 .41-.34.75-.75.75zm4.7 0c-.41 0-.75-.34-.75-.75v-3.75l-1.8 3.96c-.16.36-.58.54-.95.38-.2-.09-.34-.27-.38-.48l-.02-.11v-4.5c0-.41.34-.75.75-.75s.75.34.75.75v3.75l1.8-3.96c.16-.36.58-.54.95-.38.2.09.34.27.38.48l.02.11v4.5c0 .41-.34.75-.75.75z"/>
@@ -863,7 +959,6 @@
     }
     const audioFx = new MedicalAudio();
 
-    // 音效開關切換
     const btnSoundToggle = document.getElementById('btnSoundToggle');
     const soundIcon = document.getElementById('soundIcon');
     const soundLabel = document.getElementById('soundLabel');
@@ -923,8 +1018,7 @@
       </svg>
     `;
 
-    /* 優先加載 crrt-machine.png，失敗則以高擬真 SVG 無縫備援 */
-    function injectMachineVisual(targetElementId) {
+    function injectMachineVisual(targetElementId, appendHotspots = false) {
       const container = document.getElementById(targetElementId);
       if (!container) return;
 
@@ -933,19 +1027,24 @@
       img.alt = "HF440 CRRT Machine";
 
       img.onload = () => {
+        // 保存既有的 hotspot 元素
+        const hotspots = container.querySelector('#pumpHotspotsLayer');
         container.innerHTML = '';
         container.appendChild(img);
+        if (hotspots) container.appendChild(hotspots);
       };
 
       img.onerror = () => {
+        const hotspots = container.querySelector('#pumpHotspotsLayer');
         container.innerHTML = FALLBACK_MACHINE_SVG;
+        if (hotspots) container.appendChild(hotspots);
       };
     }
 
     injectMachineVisual('homeMachineContainer');
-    injectMachineVisual('quizMachineFrame');
+    injectMachineVisual('quizMachineFrame', true);
 
-    /* 題庫與解答內容 */
+    /* 包含原有題目與新增泵浦點擊題的完整題庫 */
     const RAW_QUESTION_BANK = [
       {
         id: 1,
@@ -1088,6 +1187,47 @@
         answer: "C",
         feedbackCorrect: "觀念透徹！動脈端常態為負壓抽吸引血，正常不會呈現 +250 mmHg；而 TMP>350、靜脈壓>250 或耗材達 72 小時均為明確回血警示指標！",
         feedbackWrong: "回答錯誤。動脈端為負壓引血，因此「動脈壓力：250 mmHg」並非標準回血參考指標。"
+      },
+      /* 新增題目：泵浦點選熱區題型 */
+      {
+        id: 11,
+        type: 'pump_click',
+        alarm: false,
+        prompt: "【機台認知】請問「補充液泵浦」位於機器的哪個位置？請直接在上方機器面板點選正確的泵浦。",
+        targetPump: 'replacement',
+        pumpName: '補充液泵浦 (黃色泵浦旁邊的藍色泵浦)',
+        feedbackCorrect: "正確點選！黃色廢液泵浦旁邊（右側偏下）的藍色泵浦為「補充液泵浦」，負責精準注入置換液以維持體液與電解質平衡。",
+        feedbackWrong: "點選錯誤！「補充液泵浦」為黃色廢液泵浦旁邊（右側）的藍色泵浦。"
+      },
+      {
+        id: 12,
+        type: 'pump_click',
+        alarm: false,
+        prompt: "【機台認知】請問「血液泵浦」位於機器的哪個位置？請直接在上方機器面板點選正確的泵浦。",
+        targetPump: 'blood',
+        pumpName: '血液泵浦 (紅色泵浦)',
+        feedbackCorrect: "正確點選！左上方的紅色泵浦為「血液泵浦 (Blood Pump)」，負責驅動體外循環血液流速。",
+        feedbackWrong: "點選錯誤！「血液泵浦」為機器左上方的紅色泵浦。"
+      },
+      {
+        id: 13,
+        type: 'pump_click',
+        alarm: false,
+        prompt: "【機台認知】請問「廢液泵浦」位於機器的哪個位置？請直接在上方機器面板點選正確的泵浦。",
+        targetPump: 'effluent',
+        pumpName: '廢液泵浦 (黃色泵浦)',
+        feedbackCorrect: "正確點選！左中方的黃色泵浦為「廢液泵浦 (Effluent Pump)」，負責將超過濾廢液抽引至集液袋中。",
+        feedbackWrong: "點選錯誤！「廢液泵浦」為機器左中方的黃色泵浦。"
+      },
+      {
+        id: 14,
+        type: 'pump_click',
+        alarm: false,
+        prompt: "【機台認知】請問「前稀釋泵浦」位於機器的哪個位置？請直接在上方機器面板點選正確的泵浦。",
+        targetPump: 'predilution',
+        pumpName: '前稀釋泵浦 (紅色泵浦旁邊的藍色泵浦)',
+        feedbackCorrect: "正確點選！紅色血液泵浦旁邊（右側）的藍色泵浦為「前稀釋泵浦」，HF440 具備自動前稀釋調節功能！",
+        feedbackWrong: "點選錯誤！「前稀釋泵浦」為紅色血液泵浦旁邊（右側）的藍色泵浦。"
       }
     ];
 
@@ -1113,6 +1253,7 @@
     const timerText = document.getElementById('timerText');
     const alarmHeadlineText = document.getElementById('alarmHeadlineText');
     const quizMachineFrame = document.getElementById('quizMachineFrame');
+    const pumpHotspotsLayer = document.getElementById('pumpHotspotsLayer');
     const questionPromptText = document.getElementById('questionPromptText');
     const optionsContainer = document.getElementById('optionsContainer');
     const dragInteractiveContainer = document.getElementById('dragInteractiveContainer');
@@ -1198,6 +1339,11 @@
       feedbackBox.className = 'answer-feedback-box';
       btnNextQuestion.style.display = 'none';
 
+      // 重設機台放大與熱區狀態
+      quizMachineFrame.classList.remove('interactive-pump-mode');
+      pumpHotspotsLayer.classList.remove('active');
+      resetPumpHotspotsUI();
+
       if (qData.alarm) {
         alarmHeadlineText.classList.add('show');
         quizMachineFrame.classList.add('alarm-flashing');
@@ -1229,9 +1375,69 @@
         optionsContainer.style.display = 'none';
         dragInteractiveContainer.style.display = 'flex';
         renderDragPipeline(qData);
+      } else if (qData.type === 'pump_click') {
+        optionsContainer.style.display = 'none';
+        dragInteractiveContainer.style.display = 'none';
+        // 進入泵浦點選模式：微調放大機台並啟動熱點覆蓋層
+        quizMachineFrame.classList.add('interactive-pump-mode');
+        pumpHotspotsLayer.classList.add('active');
       }
 
       startQuestionTimer();
+    }
+
+    /* 泵浦熱區重設 */
+    function resetPumpHotspotsUI() {
+      const hotspots = pumpHotspotsLayer.querySelectorAll('.pump-btn-hotspot');
+      hotspots.forEach(el => {
+        el.className = 'pump-btn-hotspot';
+        const badge = el.querySelector('.pump-name-badge');
+        if (badge) badge.style.display = 'none';
+      });
+    }
+
+    /* 綁定四個泵浦點選事件 */
+    const pumpHotspots = document.querySelectorAll('.pump-btn-hotspot');
+    pumpHotspots.forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (hasAnsweredCurrent) return;
+        const qData = selectedQuizList[currentQIndex];
+        if (qData.type !== 'pump_click') return;
+
+        const chosenPump = el.getAttribute('data-pump');
+        evaluatePumpClickAnswer(chosenPump, el, qData);
+      });
+    });
+
+    /* 判定泵浦點擊答案 */
+    function evaluatePumpClickAnswer(chosenPump, clickedElem, qData) {
+      hasAnsweredCurrent = true;
+      clearInterval(timerInterval);
+
+      const isCorrect = (chosenPump === qData.targetPump);
+      const targetHotspot = document.querySelector(`.pump-btn-hotspot[data-pump="${qData.targetPump}"]`);
+
+      // 揭示所有泵浦標籤協助學習
+      pumpHotspots.forEach(spot => {
+        const badge = spot.querySelector('.pump-name-badge');
+        if (badge) badge.style.display = 'block';
+      });
+
+      if (isCorrect) {
+        audioFx.correct();
+        clickedElem.classList.add('correct-hit');
+        updateVitals(+5);
+        showFeedback(true, "點選正確！", qData.feedbackCorrect);
+      } else {
+        audioFx.wrong();
+        clickedElem.classList.add('wrong-hit');
+        if (targetHotspot) targetHotspot.classList.add('correct-hit');
+        updateVitals(-10);
+        showFeedback(false, "點選錯誤！", qData.feedbackWrong);
+      }
+
+      checkSessionEndState();
     }
 
     /* 拖曳管路題目渲染 */
@@ -1370,6 +1576,13 @@
             btn.classList.add('correct');
           }
         });
+      } else if (qData.type === 'pump_click') {
+        const targetHotspot = document.querySelector(`.pump-btn-hotspot[data-pump="${qData.targetPump}"]`);
+        if (targetHotspot) targetHotspot.classList.add('correct-hit');
+        pumpHotspots.forEach(spot => {
+          const badge = spot.querySelector('.pump-name-badge');
+          if (badge) badge.style.display = 'block';
+        });
       }
 
       showFeedback(false, "時間到！逾時未作答扣減生命值", qData.feedbackWrong || "每題限時 60 秒，病人生命值受到影響下降 10%。");
@@ -1411,6 +1624,8 @@
       switchScreen(screenResult);
       clearInterval(timerInterval);
 
+      quizMachineFrame.classList.remove('interactive-pump-mode');
+      pumpHotspotsLayer.classList.remove('active');
       alarmHeadlineText.classList.remove('show');
       quizMachineFrame.classList.remove('alarm-flashing');
       if (currentVitals >= 60) {
