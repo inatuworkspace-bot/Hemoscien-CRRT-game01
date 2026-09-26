@@ -411,7 +411,7 @@
       100% { filter: drop-shadow(0 0 22px rgba(255, 20, 50, 1)) brightness(1.2); }
     }
 
-    /* 四個泵浦熱區覆蓋層（精準對齊矩形標記框） */
+    /* 四個泵浦熱區覆蓋層（精確往左往上校正） */
     .pump-hotspots-layer {
       position: absolute;
       inset: 0;
@@ -423,8 +423,8 @@
     }
     .pump-btn-hotspot {
       position: absolute;
-      border-radius: 8px; /* 依照框選調整為矩形 */
-      border: 2px dashed rgba(191, 192, 192, 0.75);
+      border-radius: 6px;
+      border: 2px dashed rgba(191, 192, 192, 0.8);
       background: rgba(255, 255, 255, 0.08);
       cursor: pointer;
       display: flex;
@@ -832,20 +832,20 @@
         <div class="machine-img-frame" id="quizMachineFrame">
           <!-- 圖片由 JS inject -->
           <div class="pump-hotspots-layer" id="pumpHotspotsLayer">
-            <!-- 1. 血液泵浦 (左上紅框)[cite: 8] -->
-            <div class="pump-btn-hotspot" id="hotspot_blood" style="left: 24.5%; top: 36.8%; width: 25.5%; height: 11.2%;" data-pump="blood">
+            <!-- 1. 血液泵浦 (左上紅框：向左向上校正)[cite: 8] -->
+            <div class="pump-btn-hotspot" id="hotspot_blood" style="left: 20.0%; top: 32.0%; width: 24%; height: 11%;" data-pump="blood">
               <span class="pump-name-badge">血液泵浦</span>
             </div>
-            <!-- 2. 前稀釋泵浦 (右上深藍框，紅旁邊)[cite: 8] -->
-            <div class="pump-btn-hotspot" id="hotspot_predilution" style="left: 43.5%; top: 36.2%; width: 26%; height: 12.8%;" data-pump="predilution">
+            <!-- 2. 前稀釋泵浦 (右上深藍框：向左向上校正)[cite: 8] -->
+            <div class="pump-btn-hotspot" id="hotspot_predilution" style="left: 39.0%; top: 31.4%; width: 24%; height: 11%;" data-pump="predilution">
               <span class="pump-name-badge">前稀釋泵浦</span>
             </div>
-            <!-- 3. 廢液泵浦 (左下黃框)[cite: 8] -->
-            <div class="pump-btn-hotspot" id="hotspot_effluent" style="left: 24.5%; top: 47.6%; width: 26%; height: 11.8%;" data-pump="effluent">
+            <!-- 3. 廢液泵浦 (左下黃框：向左向上校正)[cite: 8] -->
+            <div class="pump-btn-hotspot" id="hotspot_effluent" style="left: 20.0%; top: 42.8%; width: 24%; height: 11%;" data-pump="effluent">
               <span class="pump-name-badge">廢液泵浦</span>
             </div>
-            <!-- 4. 補充液泵浦 (右下淺藍框，黃旁邊)[cite: 8] -->
-            <div class="pump-btn-hotspot" id="hotspot_replacement" style="left: 43.5%; top: 48.4%; width: 26%; height: 10.6%;" data-pump="replacement">
+            <!-- 4. 補充液泵浦 (右下淺藍框：向左向上校正)[cite: 8] -->
+            <div class="pump-btn-hotspot" id="hotspot_replacement" style="left: 39.0%; top: 43.6%; width: 24%; height: 11%;" data-pump="replacement">
               <span class="pump-name-badge">補充液泵浦</span>
             </div>
           </div>
@@ -1336,7 +1336,6 @@
       feedbackBox.className = 'answer-feedback-box';
       btnNextQuestion.style.display = 'none';
 
-      // 重設機台放大與熱區狀態
       quizMachineFrame.classList.remove('interactive-pump-mode');
       pumpHotspotsLayer.classList.remove('active');
       resetPumpHotspotsUI();
@@ -1375,7 +1374,6 @@
       } else if (qData.type === 'pump_click') {
         optionsContainer.style.display = 'none';
         dragInteractiveContainer.style.display = 'none';
-        // 進入泵浦點選模式：微調放大機台並啟動熱點覆蓋層
         quizMachineFrame.classList.add('interactive-pump-mode');
         pumpHotspotsLayer.classList.add('active');
       }
@@ -1383,7 +1381,6 @@
       startQuestionTimer();
     }
 
-    /* 泵浦熱區重設 */
     function resetPumpHotspotsUI() {
       const hotspots = pumpHotspotsLayer.querySelectorAll('.pump-btn-hotspot');
       hotspots.forEach(el => {
@@ -1393,7 +1390,6 @@
       });
     }
 
-    /* 綁定四個泵浦點選事件 */
     const pumpHotspots = document.querySelectorAll('.pump-btn-hotspot');
     pumpHotspots.forEach(el => {
       el.addEventListener('click', (e) => {
@@ -1407,7 +1403,6 @@
       });
     });
 
-    /* 判定泵浦點擊答案 */
     function evaluatePumpClickAnswer(chosenPump, clickedElem, qData) {
       hasAnsweredCurrent = true;
       clearInterval(timerInterval);
@@ -1415,7 +1410,6 @@
       const isCorrect = (chosenPump === qData.targetPump);
       const targetHotspot = document.querySelector(`.pump-btn-hotspot[data-pump="${qData.targetPump}"]`);
 
-      // 揭示所有泵浦標籤協助學習
       pumpHotspots.forEach(spot => {
         const badge = spot.querySelector('.pump-name-badge');
         if (badge) badge.style.display = 'block';
@@ -1437,7 +1431,6 @@
       checkSessionEndState();
     }
 
-    /* 拖曳管路題目渲染 */
     function renderDragPipeline(qData) {
       dragSourceArea.style.visibility = 'visible';
       dragSourceArea.style.display = 'flex';
