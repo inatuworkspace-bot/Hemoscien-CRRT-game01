@@ -411,7 +411,7 @@
       100% { filter: drop-shadow(0 0 22px rgba(255, 20, 50, 1)) brightness(1.2); }
     }
 
-    /* 四個泵浦熱區覆蓋層（左右保持，向下修正0.5公分） */
+    /* 四個泵浦熱區覆蓋層（垂直向下修正0.5公分） */
     .pump-hotspots-layer {
       position: absolute;
       inset: 0;
@@ -833,19 +833,19 @@
           <!-- 圖片由 JS inject -->
           <div class="pump-hotspots-layer" id="pumpHotspotsLayer">
             <!-- 1. 血液泵浦 (左上紅框：向右向下精準覆蓋)[cite: 8] -->
-            <div class="pump-btn-hotspot" id="hotspot_blood" style="left: 22.2%; top: 36.9%; width: 24%; height: 11%;" data-pump="blood">
+            <div class="pump-btn-hotspot" id="hotspot_blood" style="left: 22.2%; top: 39.4%; width: 24%; height: 11%;" data-pump="blood">
               <span class="pump-name-badge">血液泵浦</span>
             </div>
             <!-- 2. 前稀釋泵浦 (右上深藍框：向右向下精準覆蓋)[cite: 8] -->
-            <div class="pump-btn-hotspot" id="hotspot_predilution" style="left: 41.2%; top: 36.3%; width: 24%; height: 11%;" data-pump="predilution">
+            <div class="pump-btn-hotspot" id="hotspot_predilution" style="left: 41.2%; top: 38.8%; width: 24%; height: 11%;" data-pump="predilution">
               <span class="pump-name-badge">前稀釋泵浦</span>
             </div>
             <!-- 3. 廢液泵浦 (左下黃框：向右向下精準覆蓋)[cite: 8] -->
-            <div class="pump-btn-hotspot" id="hotspot_effluent" style="left: 22.2%; top: 47.7%; width: 24%; height: 11%;" data-pump="effluent">
+            <div class="pump-btn-hotspot" id="hotspot_effluent" style="left: 22.2%; top: 50.2%; width: 24%; height: 11%;" data-pump="effluent">
               <span class="pump-name-badge">廢液泵浦</span>
             </div>
             <!-- 4. 補充液泵浦 (右下淺藍框：向右向下精準覆蓋)[cite: 8] -->
-            <div class="pump-btn-hotspot" id="hotspot_replacement" style="left: 41.2%; top: 48.5%; width: 24%; height: 11%;" data-pump="replacement">
+            <div class="pump-btn-hotspot" id="hotspot_replacement" style="left: 41.2%; top: 51.0%; width: 24%; height: 11%;" data-pump="replacement">
               <span class="pump-name-badge">補充液泵浦</span>
             </div>
           </div>
@@ -1085,8 +1085,8 @@
           { key: "D", text: "1850 mL/hr" }
         ],
         answer: "B",
-        feedbackCorrect: "計算精準！70 kg × 25 mL/kg/hr = 1750 mL/hr。",
-        feedbackWrong: "計算錯誤。計算公式為：70 kg × 25 mL/kg/hr = 1750 mL/hr。"
+        feedbackCorrect: "計算精準！超濾流量計算公式：70 kg × 25 mL/kg/hr = 1750 mL/hr。",
+        feedbackWrong: "計算錯誤。超濾流量計算公式為：70 kg × 25 mL/kg/hr = 1750 mL/hr。"
       },
       {
         id: 4,
@@ -1152,7 +1152,7 @@
           { key: "D", text: "結束治療更換迴路管套組" }
         ],
         answer: "B",
-        feedbackCorrect: "處置確實！補充液流速不足常導因於管夾未鬆開或接管扭曲，第一步迅速「確認補充液管路是否折管」。",
+        feedbackCorrect: "處置正確！補充液流速不足常導因於管夾未鬆開或接管扭曲，第一步應迅速「確認補充液管路是否折管」。",
         feedbackWrong: "回答錯誤。補充液流速過低時，應立即檢查補充液管路本身是否有打折折疊或夾子未開。"
       },
       {
@@ -1167,8 +1167,8 @@
           { key: "D", text: "結束治療更換迴路管套組" }
         ],
         answer: "A",
-        feedbackCorrect: "專業診斷！首先觀察漏血偵測槽內廢液外觀，確認是否真有破膜溶血，抑或僅是氣泡或黃疸引起的假性偵測。",
-        feedbackWrong: "回答錯誤。第一步應直接「觀察漏血偵測器內顏色是否為淡黃色（澄清與否）」，分辨真性漏血或假警報。"
+        feedbackCorrect: "專業診斷！首先觀察漏血偵測槽內廢液外觀，確認是否真有破膜溶血，抑或是氣泡或黃疸引起的假性偵測。",
+        feedbackWrong: "回答錯誤。第一步應直接「觀察漏血偵測器內顏色是否為淡黃色」，分辨真性漏血或假警報。"
       },
       {
         id: 10,
@@ -1190,17 +1190,17 @@
         id: 11,
         type: 'pump_click',
         alarm: false,
-        prompt: "【機台認知】請問「補充液泵浦」位於機器的哪個位置？請直接在上方機器面板點選正確的泵浦。",
+        prompt: "請問「補充液泵浦」位於機器的哪個位置？請直接在上方機器面板點選正確的泵浦。",
         targetPump: 'replacement',
-        pumpName: '補充液泵浦 (黃色泵浦旁邊的藍色泵浦)',
-        feedbackCorrect: "正確點選！黃色廢液泵浦旁邊（右側偏下）的藍色泵浦為「補充液泵浦」，負責精準注入置換液以維持體液與電解質平衡。",
-        feedbackWrong: "點選錯誤！「補充液泵浦」為黃色廢液泵浦旁邊（右側）的藍色泵浦。"
+        pumpName: '補充液泵浦',
+        feedbackCorrect: "正確點選！右下方的藍色泵浦為「補充液泵浦」，負責精準注入補充液以維持體液與電解質平衡。",
+        feedbackWrong: "點選錯誤！「補充液泵浦」為機器右下方的藍色泵浦。"
       },
       {
         id: 12,
         type: 'pump_click',
         alarm: false,
-        prompt: "【機台認知】請問「血液泵浦」位於機器的哪個位置？請直接在上方機器面板點選正確的泵浦。",
+        prompt: "請問「血液泵浦」位於機器的哪個位置？請直接在上方機器面板點選正確的泵浦。",
         targetPump: 'blood',
         pumpName: '血液泵浦 (紅色泵浦)',
         feedbackCorrect: "正確點選！左上方的紅色泵浦為「血液泵浦 (Blood Pump)」，負責驅動體外循環血液流速。",
@@ -1210,21 +1210,21 @@
         id: 13,
         type: 'pump_click',
         alarm: false,
-        prompt: "【機台認知】請問「廢液泵浦」位於機器的哪個位置？請直接在上方機器面板點選正確的泵浦。",
+        prompt: "請問「廢液泵浦」位於機器的哪個位置？請直接在上方機器面板點選正確的泵浦。",
         targetPump: 'effluent',
         pumpName: '廢液泵浦 (黃色泵浦)',
-        feedbackCorrect: "正確點選！左中方的黃色泵浦為「廢液泵浦 (Effluent Pump)」，負責將超過濾廢液抽引至集液袋中。",
-        feedbackWrong: "點選錯誤！「廢液泵浦」為機器左中方的黃色泵浦。"
+        feedbackCorrect: "正確點選！黃色泵浦為「廢液泵浦 (Effluent Pump)」，負責將超濾廢液抽引至集液袋中。",
+        feedbackWrong: "點選錯誤！「廢液泵浦」為機器左下方的黃色泵浦。"
       },
       {
         id: 14,
         type: 'pump_click',
         alarm: false,
-        prompt: "【機台認知】請問「前稀釋泵浦」位於機器的哪個位置？請直接在上方機器面板點選正確的泵浦。",
+        prompt: "請問「前稀釋泵浦」位於機器的哪個位置？請直接在上方機器面板點選正確的泵浦。",
         targetPump: 'predilution',
-        pumpName: '前稀釋泵浦 (紅色泵浦旁邊的藍色泵浦)',
-        feedbackCorrect: "正確點選！紅色血液泵浦旁邊（右側）的藍色泵浦為「前稀釋泵浦」，HF440 具備自動前稀釋調節功能！",
-        feedbackWrong: "點選錯誤！「前稀釋泵浦」為紅色血液泵浦旁邊（右側）的藍色泵浦。"
+        pumpName: '前稀釋泵浦',
+        feedbackCorrect: "正確點選！右上方的藍色泵浦為「前稀釋泵浦」，HF440 具備自動前稀釋調節功能！",
+        feedbackWrong: "點選錯誤！「前稀釋泵浦」為機器右上方的藍色泵浦。"
       }
     ];
 
