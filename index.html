@@ -411,7 +411,7 @@
       100% { filter: drop-shadow(0 0 22px rgba(255, 20, 50, 1)) brightness(1.2); }
     }
 
-    /* 四個泵浦熱區覆蓋層（垂直向下修正0.5公分） */
+    /* 四個泵浦熱區覆蓋層（垂直向上微調0.2公分） */
     .pump-hotspots-layer {
       position: absolute;
       inset: 0;
@@ -832,20 +832,20 @@
         <div class="machine-img-frame" id="quizMachineFrame">
           <!-- 圖片由 JS inject -->
           <div class="pump-hotspots-layer" id="pumpHotspotsLayer">
-            <!-- 1. 血液泵浦 (左上紅框：向右向下精準覆蓋)[cite: 8] -->
-            <div class="pump-btn-hotspot" id="hotspot_blood" style="left: 22.2%; top: 39.4%; width: 24%; height: 11%;" data-pump="blood">
+            <!-- 1. 血液泵浦 (左上紅框：向上微調0.2公分) -->
+            <div class="pump-btn-hotspot" id="hotspot_blood" style="left: 22.2%; top: 38.4%; width: 24%; height: 11%;" data-pump="blood">
               <span class="pump-name-badge">血液泵浦</span>
             </div>
-            <!-- 2. 前稀釋泵浦 (右上深藍框：向右向下精準覆蓋)[cite: 8] -->
-            <div class="pump-btn-hotspot" id="hotspot_predilution" style="left: 41.2%; top: 38.8%; width: 24%; height: 11%;" data-pump="predilution">
+            <!-- 2. 前稀釋泵浦 (右上深藍框：向上微調0.2公分) -->
+            <div class="pump-btn-hotspot" id="hotspot_predilution" style="left: 41.2%; top: 37.8%; width: 24%; height: 11%;" data-pump="predilution">
               <span class="pump-name-badge">前稀釋泵浦</span>
             </div>
-            <!-- 3. 廢液泵浦 (左下黃框：向右向下精準覆蓋)[cite: 8] -->
-            <div class="pump-btn-hotspot" id="hotspot_effluent" style="left: 22.2%; top: 50.2%; width: 24%; height: 11%;" data-pump="effluent">
+            <!-- 3. 廢液泵浦 (左下黃框：向上微調0.2公分) -->
+            <div class="pump-btn-hotspot" id="hotspot_effluent" style="left: 22.2%; top: 49.2%; width: 24%; height: 11%;" data-pump="effluent">
               <span class="pump-name-badge">廢液泵浦</span>
             </div>
-            <!-- 4. 補充液泵浦 (右下淺藍框：向右向下精準覆蓋)[cite: 8] -->
-            <div class="pump-btn-hotspot" id="hotspot_replacement" style="left: 41.2%; top: 51.0%; width: 24%; height: 11%;" data-pump="replacement">
+            <!-- 4. 補充液泵浦 (右下淺藍框：向上微調0.2公分) -->
+            <div class="pump-btn-hotspot" id="hotspot_replacement" style="left: 41.2%; top: 50.0%; width: 24%; height: 11%;" data-pump="replacement">
               <span class="pump-name-badge">補充液泵浦</span>
             </div>
           </div>
